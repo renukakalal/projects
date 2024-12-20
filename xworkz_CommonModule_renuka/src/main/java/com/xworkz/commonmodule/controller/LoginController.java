@@ -6,6 +6,7 @@ import com.xworkz.commonmodule.service.ModuleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,9 +29,11 @@ public class LoginController {
      return "Success.jsp";
    }
    @PostMapping("/login")
-   public String nologin(@RequestParam String email,String password)
+   public String nologin(@RequestParam String email, String password, Model model)
    {
-       return "Success.jsp";
+       model.addAttribute("msg","matched");
+
+       return "SignIn.jsp";
    }
 
 

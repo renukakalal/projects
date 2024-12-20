@@ -8,6 +8,13 @@ import javax.persistence.*;
 @Entity
 @Data
 @Table(name="module_table")
+@NamedQuery(name="getNameByEmailAndPassword" ,query="select rk.name from ModuleEntity rk where rk.email= :byemail and rk.password = :bypassword ")
+@NamedQuery(name="getcountName" , query ="select count(*) from ModuleEntity rk where rk.name =:SetName")
+@NamedQuery(name ="getcountemail", query="select count(*) from ModuleEntity rk where rk.email =:SetEmail")
+@NamedQuery(name="getcountaltEmail",query = "select count(*) from ModuleEntity rk where rk.alternativeEmail =:SetAlternativeEmail")
+@NamedQuery(name="getcountNumber",query = "select count(*) from ModuleEntity rk where rk.phoneNumber =:SetphoneNumber")
+@NamedQuery(name="getcountalternumber",query ="select count(*) from ModuleEntity rk where rk.alternativePhoneNumber =:SetalternativePhoneNumber")
+
 public class ModuleEntity {
 
 

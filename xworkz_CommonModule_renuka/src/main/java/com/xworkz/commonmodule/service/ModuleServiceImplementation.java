@@ -18,75 +18,7 @@ public class ModuleServiceImplementation implements ModuleService{
         System.out.println("running service implementation");
 
 
-       boolean isvalid=true;
-       if(moduleDTO.getName()!=null)
-       {
-           System.out.println("name is valid");
-           isvalid=true;
-       }
-       else
-       {
-           System.out.println("name is in valid");
-           isvalid=false;
-       }
-       if(moduleDTO.getAlternativeEmail()!=null)
-       {
-           System.out.println("gmail is in valid");
-           isvalid=true;
-       }
-       else
-       {
-           System.out.println("getAlternativeEmail is valid");
-           isvalid=false;
-       }
-        if(moduleDTO.getAlternativeEmail()!=null)
-        {
-            System.out.println("getAlternativeEmail is in valid");
-            isvalid=true;
-        }
-        else
-        {
-            System.out.println("email is valid");
-            isvalid=false;
-        }
-        if(moduleDTO.getPhoneNumber()!=0)
-        {
-            System.out.println("number is in valid");
-            isvalid=true;
-        }
-        else
-        {
-            System.out.println("number is valid");
-            isvalid=false;
-        }
-        if(moduleDTO.getAlternativePhoneNumber()==0)
-        {
-            System.out.println("AlternativePhoneNumber is in valid");
-            isvalid=true;
-        }
-        else
-        {
-            System.out.println("AlternativePhoneNumber is valid");
-            isvalid=false;
-        }
-        if(moduleDTO.getLocation()!=null)
-        {
-            isvalid=true;
-            System.out.println("location is valid");
-        }
-        else {
-            System.out.println("location is in valid");
-            isvalid=false;
-        }
-        if(generateRandomPassword()!=null)
-        {
-            isvalid=true;
-            System.out.println("password is valid");
-        }
-        else {
-            System.out.println("password is valid");
-            isvalid=false;
-        }
+
 
 
         String password=generateRandomPassword();
@@ -104,7 +36,46 @@ public class ModuleServiceImplementation implements ModuleService{
         boolean saved= moduleRepository.save(moduleEntity);
         System.out.println("deatils"+moduleEntity);
         return true;
+
     }
+
+    @Override
+    public Long getcountName(String name) {
+
+       Long getname=moduleRepository.getcountName(name);
+       return getname;
+
+
+
+    }
+
+    @Override
+    public Long getcountemail(String email) {
+        Long getemail=moduleRepository.getcountName(email);
+        return getemail;
+    }
+
+    @Override
+    public Long getcountaltEmail(String alternativeEmail) {
+
+        Long getaltemail=moduleRepository.getcountaltEmail(alternativeEmail);
+        
+        return getaltemail;
+    }
+
+    @Override
+    public Long getcountNumber(String phoneNumber) {
+        Long getnumber=moduleRepository.getcountNumber(phoneNumber);
+        return getnumber;
+    }
+
+    @Override
+    public Long getcountalternumber(String alternativePhoneNumber) {
+        Long getaltNumber=moduleRepository.getcountalternumber(alternativePhoneNumber);
+        return getaltNumber;
+    }
+
+
     public static String generateRandomPassword() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();

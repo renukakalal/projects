@@ -1,3 +1,4 @@
+<%@page isELIgnored = "false"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,6 +51,7 @@
             </div>
             <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>
+        ${msg}
     </div>
 
     <!-- Bootstrap Bundle with Popper -->
