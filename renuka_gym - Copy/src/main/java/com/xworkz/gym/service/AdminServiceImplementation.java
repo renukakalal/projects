@@ -12,12 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.*;
 
 
 @Service
@@ -27,6 +28,9 @@ public class AdminServiceImplementation implements AdminService {
     private static final Logger log = LoggerFactory.getLogger(AdminServiceImplementation.class);
     @Autowired
     AdminRepository adminRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @Override
     public boolean adminlogin(String email, String password) {
@@ -48,7 +52,15 @@ public class AdminServiceImplementation implements AdminService {
     @Override
     public boolean save(AdminEnquiryDTO adminDTO) {
 
+
+
+
         AdminEnquiryEntity adminEntity = new AdminEnquiryEntity();
+
+
+
+
+
         adminEntity.setId(adminDTO.getId());
         adminEntity.setName(adminDTO.getName());
         adminEntity.setArea(adminDTO.getArea());
@@ -97,6 +109,10 @@ public class AdminServiceImplementation implements AdminService {
 
         System.out.println("register requesting in service ");
 
+
+        String password=generateRandomPassword();
+        String encoderpassword=passwordEncoder.encode(password);
+
         AdminRegistractionEntity adminRegistractionEntity = new AdminRegistractionEntity();
         adminRegistractionEntity.setId(adminRegistrationDTO.getId());
         adminRegistractionEntity.setName(adminRegistrationDTO.getName());
@@ -110,6 +126,7 @@ public class AdminServiceImplementation implements AdminService {
         adminRegistractionEntity.setAmount(adminRegistrationDTO.getAmount());
         adminRegistractionEntity.setBalance(adminRegistrationDTO.getBalance());
         adminRegistractionEntity.setInstalment(adminRegistrationDTO.getInstalment());
+        adminRegistractionEntity.setPassword(password);
 
 
         boolean saved = adminRepository.register(adminRegistractionEntity);
@@ -117,6 +134,21 @@ public class AdminServiceImplementation implements AdminService {
         System.out.println("register saving in the service");
         return true;
     }
+
+    public static String generateRandomPassword() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+        StringBuilder password = new StringBuilder();
+
+        // Generate a 4-character random password
+        for (int i = 0; i < 4; i++) {
+            int randomIndex = random.nextInt(characters.length());
+            password.append(characters.charAt(randomIndex));
+        }
+
+        return password.toString();
+    }
+
 
     @Override
     public boolean updatedetails(AdminRegistrationDTO adminRegistrationDTO,String email) {
@@ -176,6 +208,51 @@ public class AdminServiceImplementation implements AdminService {
 
         int updatedeDetails=adminRepository.updateRegisterDetails(registerId,packaged,trainer,amount,balance);
         return updatedeDetails;
+    }
+
+    @Override
+    public boolean saveEmail(String email, String password)
+    {
+
+        final String username ="renuka.xworkz@gmail.com";
+        final String userPassword = "qzfb jarx tvqw fuir";
+        log.info("email and password is running");
+
+        Properties prop = new Properties();
+        prop.put("mail.smtp.host", "smtp.gmail.com");
+        prop.put("mail.smtp.port", "587");
+        prop.put("mail.smtp.auth", "true");
+        prop.put("mail.smtp.starttls.enable", "true"); //TLS
+
+        Session session = Session.getInstance(prop,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, userPassword);
+                    }
+                });
+        try {
+
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(
+                    Message.RecipientType.TO,
+                    InternetAddress.parse(email)
+            );
+            message.setSubject("Your password");
+            message.setText("your passwordd:"+password);
+
+            Transport.send(message);
+            log.info("Email sent successfully.");
+
+            log.info("Done");
+
+        } catch (MessagingException e) {
+
+            log.info("Failed to send email: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return true;
     }
 }
 

@@ -40,7 +40,9 @@ public class AdminEnqueryController {
 
 
         if (saved) {
-            return "Success";
+
+            model.addAttribute("saved","your Enquiry details are successfull");
+            return "Menu";
         } else {
             return "Enquiry";
         }

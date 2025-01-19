@@ -20,5 +20,6 @@ public interface AdminService {
     List<AdminRegistrationDTO> getRegDetails();
     int updateUserEnquiryDetails(int enquiryId, String status, String reason);
     int updateRegisterDetails(int registerId,String packaged,String trainer,String amount,String balance);
+    boolean saveEmail(String email, String password);
 
 }

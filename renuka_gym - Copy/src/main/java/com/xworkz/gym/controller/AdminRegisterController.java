@@ -33,14 +33,22 @@ public class AdminRegisterController {
     List<PackageEnum> listOfPackageEnum = new ArrayList<>(Arrays.asList(PackageEnum.values()));
 
 
-    @PostMapping("/registerDetails")
-    public String saveregister(AdminRegistrationDTO adminRegistrationDTO,Model model) {
 
-
+    @GetMapping("/getRegister")
+    public String register(AdminRegistrationDTO adminRegistrationDTO,Model model)
+    {
         model.addAttribute("listOfGymname", listOfGymname);
         model.addAttribute("listOfPackageEnum", listOfPackageEnum);
 
         model.addAttribute("listOftrainer", listOftrainer);
+        return "Registraction";
+    }
+
+
+
+    @PostMapping("/registerDetails")
+    public String saveregister(AdminRegistrationDTO adminRegistrationDTO,Model model) {
+
 
         System.out.println("Register request received: " + adminRegistrationDTO);
         boolean saved = adminService.register(adminRegistrationDTO);
@@ -89,7 +97,7 @@ public class AdminRegisterController {
             return "Follow";
         }
 
-        return "Success";
+        return "Menu";
     }
 }
 

@@ -24,7 +24,7 @@ public class AdminloginController {
 
             System.out.println("in if condiaction of login method.....");
             model.addAttribute("user", valid);
-            return "Success";
+            return "Menu";
         }
 
         System.out.println("out side the if conbdiaction...");
