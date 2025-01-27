@@ -1,16 +1,16 @@
 package com.xworkz.gym.repository;
 
 import com.xworkz.gym.dto.AdminEnquiryDTO;
+import com.xworkz.gym.dto.AdminRegistrationDTO;
 import com.xworkz.gym.entity.*;
+import javassist.bytecode.stackmap.BasicBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.TransactionManager;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
+import javax.persistence.*;
 import java.util.Collections;
 import java.util.List;
 
@@ -105,6 +105,7 @@ public class AdminRepositoryImplementation implements AdminRepository {
 
     @Override
     public boolean update(AdminEnquiryEntity adminEntity) {
+        log.info("file path requesting repository");
 
         EntityManager entityManager = emf.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
@@ -156,32 +157,6 @@ public class AdminRepositoryImplementation implements AdminRepository {
     }
 
 
-
-    @Override
-    public boolean updatedetails(AdminRegistractionEntity adminRegistractionEntity) {
-
-
-        EntityManager entityManager = emf.createEntityManager();
-        EntityTransaction transaction = entityManager.getTransaction();
-        log.info("Updating data");
-        try { transaction.begin();
-            entityManager.merge(adminRegistractionEntity);
-            transaction.commit();
-            log.info("Data updated successfully");
-            return true;
-        } catch (Exception e)
-        {
-            if
-            (transaction.isActive())
-            { transaction.rollback();
-            } e.printStackTrace();
-            return false;
-        } finally
-        { entityManager.close();
-        }
-    }
-
-
     @Override
     public List<AdminRegistractionEntity> getRegDetails() {
 
@@ -211,14 +186,15 @@ public class AdminRepositoryImplementation implements AdminRepository {
     @Override
     public AdminRegistractionEntity findByEmail(String email) {
         EntityManager em = emf.createEntityManager();
-        EntityTransaction et=em.getTransaction();
+        EntityTransaction et = em.getTransaction();
         try {
-            Query query = em.createNamedQuery("findbyemail");
-            query.setParameter("emailid", email);
-            System.out.println("name"+email);
+            Query query = em.createNamedQuery("findUserEmail");
+            query.setParameter("SetEmail", email);
+            System.out.println("emailname" + email);
+            //query.setParameter("filePath",filePath);
 
-         Object singleresultlist=query.getSingleResult();
-          return (AdminRegistractionEntity) query.getSingleResult();
+            Object singleresultlist = query.getSingleResult();
+            return (AdminRegistractionEntity) query.getSingleResult();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -229,20 +205,20 @@ public class AdminRepositoryImplementation implements AdminRepository {
     }
 
     @Override
-    public int updateUserEnquiryDetails(int enquiryId,String name,String updatedBy,String status, String reason) {
+    public int updateUserEnquiryDetails(int enquiryId, String name, String updatedBy, String status, String reason) {
 
         log.info("update status requesting repository....");
         EntityManager em = emf.createEntityManager();
         EntityTransaction et = em.getTransaction();
-        int value=0;
+        int value = 0;
         try {
             et.begin();
-            Query query=em.createNamedQuery("updateUserEnquiryDetailsById");
-            query.setParameter("getupdatedBy",updatedBy);
-            query.setParameter("getStatus",status);
-            query.setParameter("getReason",reason);
-            query.setParameter("SetName",name);
-            query.setParameter("getId",enquiryId).executeUpdate();
+            Query query = em.createNamedQuery("updateUserEnquiryDetailsById");
+            query.setParameter("getupdatedBy", updatedBy);
+            query.setParameter("getStatus", status);
+            query.setParameter("getReason", reason);
+            query.setParameter("SetName", name);
+            query.setParameter("getId", enquiryId).executeUpdate();
             log.info("updating data..........");
             et.commit();
         } catch (Exception e) {
@@ -257,26 +233,26 @@ public class AdminRepositoryImplementation implements AdminRepository {
     }
 
     @Override
-    public int updateRegisterDetails(int registerId,String name, String packaged, String trainer, double amount, double balance) {
+    public int updateRegisterDetails(int registerId, String name, String packaged, String trainer, double amount, double balance) {
 
         log.info("update status requesting repository....");
         EntityManager em = emf.createEntityManager();
         EntityTransaction et = em.getTransaction();
-        int value=0;
+        int value = 0;
         try {
             et.begin();
-            Query query=em.createNamedQuery("updateRegisterDetailsById");
-            query.setParameter("getId",registerId);
+            Query query = em.createNamedQuery("updateRegisterDetailsById");
+            query.setParameter("getId", registerId);
             log.info("updating data1..........");
-            query.setParameter("getPackaged",packaged);
+            query.setParameter("getPackaged", packaged);
             log.info("updating data2..........");
-            query.setParameter("getTrainer",trainer);
+            query.setParameter("getTrainer", trainer);
             log.info("updating data3..........");
-            query.setParameter("getBalance",balance );
+            query.setParameter("getBalance", balance);
             log.info("updating data4..........");
-            query.setParameter("getAmount",amount);
+            query.setParameter("getAmount", amount);
             log.info("updating data5..........");
-            query.setParameter("SetName",name);
+            query.setParameter("SetName", name);
             et.commit();
         } catch (Exception e) {
             if (et.isActive()) {
@@ -301,7 +277,7 @@ public class AdminRepositoryImplementation implements AdminRepository {
 
             // Assuming you have a query that expects an "id" parameter
             Query query = em.createNamedQuery("getAllUserDetailsById");
-            query.setParameter("SetId",id);
+            query.setParameter("SetId", id);
 
             log.info("returning register data from database...");
             return (AdminEnquiryEntity) query.getSingleResult();
@@ -345,7 +321,6 @@ public class AdminRepositoryImplementation implements AdminRepository {
     }
 
 
-
     @Override
     public List<EnqueryViewEntity> enqHistory(int enquiryId) {
 
@@ -353,7 +328,7 @@ public class AdminRepositoryImplementation implements AdminRepository {
         EntityManager em = emf.createEntityManager();
         try {
             Query query = em.createNamedQuery("getEnqHistoryById");
-           query.setParameter("Setid",enquiryId);
+            query.setParameter("Setid", enquiryId);
             return query.getResultList();
         } catch (Exception e) {
             log.error("Error in enqHistory method", e);
@@ -397,7 +372,7 @@ public class AdminRepositoryImplementation implements AdminRepository {
         EntityManager em = emf.createEntityManager();
         try {
             Query query = em.createNamedQuery("getRegHistoryById");
-           query.setParameter("Setid",registerId);
+            query.setParameter("Setid", registerId);
             return query.getResultList();
         } catch (Exception e) {
             log.error("Error in enqHistory method", e);
@@ -408,8 +383,140 @@ public class AdminRepositoryImplementation implements AdminRepository {
 
     }
 
+    @Override
+    public AdminRegistractionEntity userlogin(String email) {
+        log.info("user details in repository");
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction et = em.getTransaction();
 
+
+        try {
+            Query query = em.createNamedQuery("findUserEmailAndPassword");
+            query.setParameter("SetEmail", email);
+
+            log.info("user entity is returning");
+            return (AdminRegistractionEntity) query.getSingleResult();
+        } catch (NoResultException e) {
+            log.info("returning null");
+            return null;  // Return null if no user is found
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public int updateUserProfileById(int id, String name, String email, String password, String gymName, String trainer, String packaged, String discount, double amount, double balance, int instalment, String filePath) {
+
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction et = em.getTransaction();
+        int value = 0;
+        try {
+            Query query = em.createNamedQuery("updateById");
+            query.setParameter("id", id)
+                    .setParameter("name", name)
+                    .setParameter("email", email)
+                    .setParameter("password", password)
+                    .setParameter("gymName", gymName)
+                    .setParameter("trainer", trainer)
+                    .setParameter("packaged", packaged)
+                    .setParameter("discount", discount)
+                    .setParameter("amount", amount)
+                    .setParameter("balance", balance)
+                    .setParameter("instalment", instalment)
+                    .setParameter("filePath", filePath)
+                    .executeUpdate();
+        } catch (Exception e) {
+            et.isActive();
+            {
+                et.rollback();
+            }
+
+
+        } finally {
+            em.close();
+        }
+
+
+        return value;
+    }
+
+    @Override
+    public boolean update(AdminRegistractionEntity entity) {
+        EntityManager entityManager = emf.createEntityManager();
+        EntityTransaction transaction = entityManager.getTransaction();
+
+
+        try {
+            log.info("updationg data");
+            transaction.begin();
+            //String me=(String)  entityManager.createNamedQuery("dffer").getSingleResult();
+            entityManager.merge(entity);
+            transaction.commit();
+            return true;
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public AdminRegistractionEntity resetPassword(String email) {
+        log.info("user details in repository");
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction et = em.getTransaction();
+
+        try {
+            Query query = em.createNamedQuery("findUserEmail");  // Ensure this matches the query name defined in the entity
+            query.setParameter("SetEmail", email);
+
+            log.info("user entity is returning");
+            return (AdminRegistractionEntity) query.getSingleResult();
+        } catch (NoResultException e) {
+            log.info("returning null");
+            return null;  // Return null if no user is found
+        } finally {
+            em.close();
+        }
+    }
 }
+
+
+//    @Override
+//    public AdminRegistractionEntity forgotPassword(String email) {
+//        log.info("user details in repository");
+//        EntityManager em = emf.createEntityManager();
+//        EntityTransaction et = em.getTransaction();
+//
+//        try {
+//            Query query = em.createNamedQuery("resetByEmail");  // Ensure this matches the query name defined in the entity
+//            query.setParameter("SetEmail", email);
+//
+//            log.info("user entity is returning");
+//            return (AdminRegistractionEntity) query.getSingleResult();
+//        } catch (NoResultException e) {
+//            log.info("returning null");
+//            return null;  // Return null if no user is found
+//        } finally {
+//            em.close();
+//        }
+//
+//    }
+//}
+//
+//
+//
+
+
+
+
+
+
+
 
 
 

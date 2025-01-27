@@ -1,7 +1,6 @@
 package com.xworkz.gym.service;
 
 
-import com.xworkz.gym.constant.StatusEnum;
 import com.xworkz.gym.dto.AdminEnquiryDTO;
 import com.xworkz.gym.dto.AdminRegistrationDTO;
 import com.xworkz.gym.dto.EnqueryViewDTO;
@@ -14,10 +13,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.persistence.Query;
 import java.util.*;
 
 
@@ -125,14 +126,19 @@ public class AdminServiceImplementation implements AdminService {
         adminRegistractionEntity.setBalance(adminRegistrationDTO.getBalance());
         adminRegistractionEntity.setInstalment(adminRegistrationDTO.getInstalment());
         adminRegistractionEntity.setPassword(password);
-
+        adminRegistractionEntity.setLoginCount(-1);
 
 
         boolean saved = adminRepository.register(adminRegistractionEntity);
 
+        if (saved) {
+            return saveEmail(adminRegistrationDTO.getEmail(), password);
+        }
+
         System.out.println("register saving in the service");
         return true;
     }
+
 
     public static String generateRandomPassword() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -146,26 +152,6 @@ public class AdminServiceImplementation implements AdminService {
         }
 
         return password.toString();
-    }
-
-
-    @Override
-    public boolean updatedetails(AdminRegistrationDTO adminRegistrationDTO, String email) {
-
-        AdminRegistractionEntity getmail = adminRepository.findByEmail(email);
-
-        AdminRegistractionEntity adminRegistractionEntity = new AdminRegistractionEntity();
-
-        adminRegistractionEntity.setPackaged(adminRegistrationDTO.getPackaged());
-        adminRegistractionEntity.setTrainer(adminRegistrationDTO.getTrainer());
-        adminRegistractionEntity.setAmount(adminRegistrationDTO.getAmount());
-        adminRegistractionEntity.setBalance(adminRegistrationDTO.getBalance());
-
-
-        boolean updated = adminRepository.updatedetails(adminRegistractionEntity);
-
-
-        return true;
     }
 
 
@@ -195,18 +181,18 @@ public class AdminServiceImplementation implements AdminService {
     }
 
     @Override
-    public int updateUserEnquiryDetails(int enquiryId,String name,String updatedBy,String status, String reason,EnqueryViewDTO enqueryViewDTO) {
+    public int updateUserEnquiryDetails(int enquiryId, String name, String updatedBy, String status, String reason, EnqueryViewDTO enqueryViewDTO) {
 
         log.info("update status in service");
-        int updatedValue = adminRepository.updateUserEnquiryDetails(enquiryId,name,updatedBy, status, reason);
-       saveEnq(enqueryViewDTO,enquiryId);
+        int updatedValue = adminRepository.updateUserEnquiryDetails(enquiryId, name, updatedBy, status, reason);
+        saveEnq(enqueryViewDTO, enquiryId);
         return updatedValue;
     }
 
     @Override
-    public int updateRegisterDetails(int registerId,String name, String packaged, String trainer, double amount, double balance) {
+    public int updateRegisterDetails(int registerId, String name, String packaged, String trainer, double amount, double balance) {
 
-        int updatedeDetails = adminRepository.updateRegisterDetails(registerId,name, packaged, trainer, amount, balance);
+        int updatedeDetails = adminRepository.updateRegisterDetails(registerId, name, packaged, trainer, amount, balance);
         return updatedeDetails;
     }
 
@@ -268,11 +254,11 @@ public class AdminServiceImplementation implements AdminService {
     }
 
     @Override
-    public boolean saveEnq(EnqueryViewDTO enqueryViewDTO,int id) {
+    public boolean saveEnq(EnqueryViewDTO enqueryViewDTO, int id) {
 
         log.info("saveEnq deatils in service");
 
-        EnqueryViewEntity enqueryViewEntity=new EnqueryViewEntity();
+        EnqueryViewEntity enqueryViewEntity = new EnqueryViewEntity();
 
         enqueryViewEntity.setId(enqueryViewDTO.getId());
         enqueryViewEntity.setEnquiryId(enqueryViewDTO.getEnquiryId());
@@ -283,7 +269,7 @@ public class AdminServiceImplementation implements AdminService {
         enqueryViewEntity.getUpdatedDate();
         enqueryViewEntity.getCreateDate();
 
-        boolean saved=adminRepository.saveEnq(enqueryViewEntity);
+        boolean saved = adminRepository.saveEnq(enqueryViewEntity);
         return true;
     }
 
@@ -293,14 +279,14 @@ public class AdminServiceImplementation implements AdminService {
         log.info("requesting view page in service");
 
 
-        List<EnqueryViewEntity> read=adminRepository.enqHistory(enquiryId);
+        List<EnqueryViewEntity> read = adminRepository.enqHistory(enquiryId);
         return read;
     }
 
     @Override
     public boolean saveRegHistory(RegisterViewDTO registerViewDTO) {
 
-        RegisterViewEntity registerViewEntity=new RegisterViewEntity();
+        RegisterViewEntity registerViewEntity = new RegisterViewEntity();
         registerViewEntity.setId(registerViewDTO.getId());
         registerViewEntity.setRegisterId(registerViewDTO.getRegisterId());
         registerViewEntity.setPackaged(registerViewDTO.getPackaged());
@@ -312,18 +298,115 @@ public class AdminServiceImplementation implements AdminService {
         registerViewEntity.setUpdatedBy(registerViewDTO.getName());
         registerViewEntity.getUpdatedDate();
         registerViewEntity.getCreateDate();
-        boolean saved=adminRepository.saveRegHistory(registerViewEntity);
+        boolean saved = adminRepository.saveRegHistory(registerViewEntity);
         return true;
     }
 
     @Override
     public List<RegisterViewEntity> getRegHistory(int registerId) {
-        List<RegisterViewEntity> data=adminRepository.getRegHistory(registerId);
+        List<RegisterViewEntity> data = adminRepository.getRegHistory(registerId);
         return data;
 
     }
 
+    @Override
+    public AdminRegistractionEntity userlogin(String email, String password) {
 
+        log.info("User details in the service");
+        AdminRegistractionEntity entity = adminRepository.userlogin(email);
+
+        log.info("User entity is returning in service");
+
+        if (entity != null) {
+            // If the login count is 3 or more, treat the account as locked and return null
+            if (entity.getLoginCount() >= 3) {
+                log.warn("Account is locked due to 3 failed login attempts.");
+                return null;  // Return null if account is locked (login attempts reached 3)
+            }
+
+            // Check if the password matches
+            if (entity.getPassword().equals(password)) {
+                // Reset login count to 0 if login is successful
+                entity.setLoginCount(0);
+
+                // Save the entity with updated login count
+                boolean saved = adminRepository.update(entity);
+
+                return entity;
+            } else {
+                // Increment login attempt count
+                int newLoginCount = entity.getLoginCount() + 1;
+                entity.setLoginCount(newLoginCount);
+
+                // If login count reaches 3, lock the account by just checking the login count
+                if (newLoginCount >= 3) {
+                    log.warn("Account is locked due to 3 failed login attempts.");
+                }
+
+                // Save the updated entity with incremented login count or locked status
+                adminRepository.update(entity);
+            }
+        }
+
+        return null;
+    }
+
+
+    @Override
+    public boolean updateUserProfile(AdminRegistrationDTO adminRegistrationDTO, @RequestParam("name") String name, String email, String gymName, String trainer, String packaged, String discount, double amount, double balance, int instalment, String filePath) {
+
+
+        AdminRegistractionEntity adminRegistractionEntity = new AdminRegistractionEntity();
+
+        adminRegistractionEntity.setName(name);
+        adminRegistractionEntity.setEmail(email);
+        adminRegistractionEntity.setGymName(gymName);
+        adminRegistractionEntity.setTrainer(trainer);
+        adminRegistractionEntity.setPackaged(packaged);
+        adminRegistractionEntity.setDiscount(discount);
+        adminRegistractionEntity.setAmount(amount);
+        adminRegistractionEntity.setBalance(balance);
+        adminRegistractionEntity.setInstalment(String.valueOf(instalment));
+        adminRegistractionEntity.setFilePath(filePath);
+
+        // saved=adminRepository.updateUserProfileById(adminRegistractionEntity);
+
+        return false;
+    }
+
+    public boolean resetPassword(String email, String newPassword, String confirmPassword) {
+        log.info("printing email" + email);
+        AdminRegistractionEntity entity = adminRepository.resetPassword(email);
+        log.info("printing entity" + entity);
+
+        if (entity != null) {
+            // Check if the new password matches the confirm password
+            if (newPassword.equals(confirmPassword)) {
+                log.info("new password matches confirm password");
+
+                // Encrypt the new password
+                String encryptedPassword = passwordEncoder.encode(newPassword);
+
+                // Set the encrypted password
+                entity.setPassword(encryptedPassword);
+                entity.setLoginCount(0); // Reset login count
+
+                // Update the entity
+                return adminRepository.update(entity);  // This method should persist the updated entity
+            } else {
+                log.warn("New password does not match confirm password");
+            }
+        }
+        return false;  // Return false if the entity was not found or passwords don't match
+    }
+
+//    @Override
+//    public boolean forgotPassword(String email, String password) {
+//        return false;
+//    }
 }
+
+
+
 
 

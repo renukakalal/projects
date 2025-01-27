@@ -122,7 +122,8 @@
                             <input type="hidden" name="registerId" value="${dto.id}" />
                             <tr>
                                 <td><input type="text" name="name" value="${dto.name}"1 class="form-control" /></td>
-                                <td>${dto.email}</td>
+                                <td><input type="email" name="email" class="form-control" value="${dto.email}" />
+</td>
                                 <td>${dto.password}</td>
                                 <td>${dto.discount}</td>
                                 <td>
